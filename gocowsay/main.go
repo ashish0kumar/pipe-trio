@@ -92,10 +92,10 @@ var figures = map[string]string{
 	"kitty": `       \
         \
          \
-          /l、
-        （ﾟ､ ｡ 7
-          l  ~ヽ
-          じしf_,)/`,
+           /l、
+         （ﾟ､ ｡ 7
+           l  ~ヽ
+           じしf_,)/`,
 }
 
 func main() {

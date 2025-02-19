@@ -86,6 +86,6 @@ func main() {
 		if err != nil {
 			log.Fatal("Failed to get random quote:", err)
 		}
-		fmt.Print(quote)
+		fmt.Println(strings.TrimSpace(quote))
 	}
 }

@@ -3,6 +3,8 @@
 /cmd/gololcat/gololcat
 /cmd/gofortune/gofortune
 
+/bin/
+
 # Ignore Go build artifacts
 *.exe
 *.out

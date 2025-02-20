@@ -33,9 +33,18 @@ func buildBalloon(lines []string, maxwidth int) string {
 		result = append(result, fmt.Sprintf("%s %s %s", b.borders[5], lines[0], b.borders[6]))
 	} else {
 		result = append(result, fmt.Sprintf("%s %s %s", b.borders[0], lines[0], b.borders[1]))
+
 		for i := 1; i < len(lines)-1; i++ {
-			result = append(result, fmt.Sprintf("%s %s %s", b.borders[4], lines[i], b.borders[4]))
+			if lines[i] == "" {
+				result = append(result, fmt.Sprintf("%s %s %s",
+					b.borders[4],
+					strings.Repeat(" ", maxwidth),
+					b.borders[4]))
+			} else {
+				result = append(result, fmt.Sprintf("%s %s %s", b.borders[4], lines[i], b.borders[4]))
+			}
 		}
+
 		result = append(result, fmt.Sprintf("%s %s %s", b.borders[2], lines[len(lines)-1], b.borders[3]))
 	}
 
@@ -44,12 +53,9 @@ func buildBalloon(lines []string, maxwidth int) string {
 }
 
 func processLines(lines []string) ([]string, int) {
-	// Replace tabs with spaces
 	processed := make([]string, len(lines))
 	maxWidth := 0
-
 	for i, line := range lines {
-		// Replace tabs with spaces
 		line = strings.ReplaceAll(line, "\t", "    ")
 		width := utf8.RuneCountInString(line)
 		if width > maxWidth {
@@ -58,12 +64,73 @@ func processLines(lines []string) ([]string, int) {
 		processed[i] = line
 	}
 
-	// Normalize string lengths
 	for i, line := range processed {
-		processed[i] = line + strings.Repeat(" ", maxWidth-utf8.RuneCountInString(line))
+		if line != "" {
+			processed[i] = line + strings.Repeat(" ", maxWidth-utf8.RuneCountInString(line))
+		}
+	}
+	return processed, maxWidth
+}
+
+func wrapText(text string, width int) []string {
+	words := strings.Fields(text)
+	if len(words) == 0 {
+		return []string{""}
 	}
 
-	return processed, maxWidth
+	var lines []string
+	var currentLine string
+	currentLineWidth := 0
+
+	for _, word := range words {
+		wordWidth := utf8.RuneCountInString(word)
+
+		if currentLineWidth > 0 && currentLineWidth+wordWidth+1 > width {
+			lines = append(lines, strings.TrimSpace(currentLine))
+			currentLine = word
+			currentLineWidth = wordWidth
+		} else {
+			if currentLineWidth > 0 {
+				currentLine += " "
+				currentLineWidth++
+			}
+			currentLine += word
+			currentLineWidth += wordWidth
+		}
+	}
+
+	if len(currentLine) > 0 {
+		lines = append(lines, strings.TrimSpace(currentLine))
+	}
+
+	return lines
+}
+
+// handles paragraphs and preserves some formatting
+func enhancedWrapText(text string, width int) []string {
+	paragraphs := strings.Split(text, "\n\n")
+	var result []string
+
+	for i, paragraph := range paragraphs {
+		lines := strings.Split(paragraph, "\n")
+		var paragraphText string
+
+		for _, line := range lines {
+			if len(paragraphText) > 0 {
+				paragraphText += " "
+			}
+			paragraphText += strings.TrimSpace(line)
+		}
+
+		wrappedParagraph := wrapText(paragraphText, width)
+		result = append(result, wrappedParagraph...)
+
+		if i < len(paragraphs)-1 {
+			result = append(result, "")
+		}
+	}
+
+	return result
 }
 
 var figures = map[string]string{
@@ -107,21 +174,29 @@ func main() {
 	}
 
 	figure := flag.String("f", "cow", "the figure name. Valid values are 'cow', 'stegosaurus', and 'kitty'")
+	wrapWidth := flag.Int("w", 40, "the maximum width for text wrapping")
 	flag.Parse()
 
-	// Read input lines
-	var lines []string
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-	if err := scanner.Err(); err != nil && err != io.EOF {
-		fmt.Fprintf(os.Stderr, "Error reading input: %v\n", err)
-		return
+	// Read all input
+	reader := bufio.NewReader(os.Stdin)
+	var inputText strings.Builder
+	for {
+		line, err := reader.ReadString('\n')
+		inputText.WriteString(line)
+		if err != nil && err != io.EOF {
+			fmt.Fprintf(os.Stderr, "Error reading input: %v\n", err)
+			return
+		}
+		if err == io.EOF {
+			break
+		}
 	}
 
+	// Wrap the text
+	wrappedLines := enhancedWrapText(inputText.String(), *wrapWidth)
+
 	// Process lines and build balloon
-	processed, maxWidth := processLines(lines)
+	processed, maxWidth := processLines(wrappedLines)
 	balloon := buildBalloon(processed, maxWidth)
 
 	fmt.Println(balloon)

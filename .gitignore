@@ -1,6 +1,16 @@
-# Binary output
-/gocowsay/gocowsay
-/gololcat/gololcat
-/gofortune/gofortune
+# Ignore compiled binaries
+/cmd/gocowsay/gocowsay
+/cmd/gololcat/gololcat
+/cmd/gofortune/gofortune
 
-main
+# Ignore Go build artifacts
+*.exe
+*.out
+*.tmp
+
+# Ignore Go module files (optional)
+go.sum
+
+# Ignore editor and OS-generated files
+*.swp
+.DS_Store

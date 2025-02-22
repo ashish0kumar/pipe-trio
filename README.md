@@ -1,7 +1,9 @@
 # pipe-trio
 
-`pipe-trio` is a collection of **Go rewrites of three classic UNIX
-command-line tools**: `fortune`, `cowsay`, and `lolcat`.
+`pipe-trio` is a collection of **Go rewrites of three classic UNIX command-line
+tools**: `fortune`, `cowsay`, and `lolcat`.
+
+<img src="./assets/combined.png" alt="" width="50%">
 
 ## Tools included
 
